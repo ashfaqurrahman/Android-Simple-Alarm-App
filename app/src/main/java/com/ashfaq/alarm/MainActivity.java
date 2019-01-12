@@ -62,13 +62,6 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         final View rootView = ((ViewGroup) findViewById(android.R.id.content)).getChildAt(0);
-        // http://stackoverflow.com/a/24035591/5055032
-        // http://stackoverflow.com/a/3948036/5055032
-        // The views in our layout have begun drawing.
-        // There is no lifecycle callback that tells us when our layout finishes drawing;
-        // in my own test, drawing still isn't finished by onResume().
-        // Post a message in the UI events queue to be executed after drawing is complete,
-        // so that we may get their dimensions.
         rootView.post(new Runnable() {
             @Override
             public void run() {
@@ -225,38 +218,6 @@ public class MainActivity extends BaseActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode != RESULT_OK)
             return;
-        // If we get here, either this Activity OR one of its hosted Fragments
-        // started a requested Activity for a result. The latter case may seem
-        // strange; the Fragment is the one starting the requested Activity, so why
-        // does the result end up in its host Activity? Shouldn't it end up in
-        // Fragment#onActivityResult()? Actually, the Fragment's host Activity gets the
-        // first shot at handling the result, before delegating it to the Fragment
-        // in Fragment#onActivityResult().
-        //
-        // There are subtle points to keep in mind when it is actually the Fragment
-        // that should handle the result, NOT this Activity. You MUST start
-        // the requested Activity with Fragment#startActivityForResult(), NOT
-        // Activity#startActivityForResult(). The former calls
-        // FragmentActivity#startActivityFromFragment() to implement its behavior.
-        // Among other things (not relevant to the discussion),
-        // FragmentActivity#startActivityFromFragment() sets internal bit flags
-        // that are necessary to achieve the described behavior (that this Activity
-        // should delegate the result to the Fragment). Finally, you MUST call
-        // through to the super implementation of Activity#onActivityResult(),
-        // i.e. FragmentActivity#onActivityResult(). It is this method where
-        // the aforementioned internal bit flags will be read to determine
-        // which of this Activity's hosted Fragments started the requested
-        // Activity.
-        //
-        // If you are not careful with these points and instead mistakenly call
-        // Activity#startActivityForResult(), THEN YOU WILL ONLY BE ABLE TO
-        // HANDLE THE REQUEST HERE; the super implementation of onActivityResult()
-        // will not delegate the result to the Fragment, because the requisite
-        // internal bit flags are not set with Activity#startActivityForResult().
-        //
-        // Further reading:
-        // http://stackoverflow.com/q/6147884/5055032
-        // http://stackoverflow.com/a/24303360/5055032
         super.onActivityResult(requestCode, resultCode, data);
 
         switch (requestCode) {
